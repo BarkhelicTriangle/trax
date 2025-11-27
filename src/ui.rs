@@ -13,7 +13,9 @@ pub fn repl_ui(sink: &rodio::Sink)
         input.clear();
         stdin.read_line(&mut input).unwrap();
         input = input.strip_suffix('\n').unwrap().to_string();
-        // create source from file
+
+        if input == ":q" || input == ":quit" { return; }
+
         let source_file = std::fs::File::open(&mut *input).expect("Couldn't open file");
         let decoder = decode::create_decoder_for_file(source_file).expect("Couldn't decode");
         sink.append(decoder);

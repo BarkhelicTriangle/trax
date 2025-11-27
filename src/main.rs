@@ -12,5 +12,6 @@ fn main()
 
     // The sound plays in a separate thread. This call will block the current thread until the sink
     // has finished playing all its queued sounds.
+    sink.stop();
     sink.sleep_until_end();
 }
