@@ -1,5 +1,5 @@
 mod decode;
-mod ui;
+mod tui;
 
 fn main() 
 {
@@ -8,7 +8,7 @@ fn main()
             .expect("open default audio stream");
     let sink = rodio::Sink::connect_new(&stream_handle.mixer());
 
-    ui::repl_ui(&sink);
+    tui::repl_ui(&sink);
 
     // The sound plays in a separate thread. This call will block the current thread until the sink
     // has finished playing all its queued sounds.
