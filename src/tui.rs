@@ -1,5 +1,5 @@
 use crate::decode;
-use std::io::{self, Write};
+use std::{fs::File, io::{self, Write}};
 
 fn command_handler(sink: &rodio::Sink, cmd: &str)
 {
@@ -14,6 +14,21 @@ fn command_handler(sink: &rodio::Sink, cmd: &str)
             let decoder = decode::create_decoder_for_file(source_file).expect("Couldn't decode");
             sink.append(decoder);
         },
+        ":+b" =>
+        {
+            if cmd_param == "" { return; }
+            let directory = std::path::Path::new(&cmd_param);
+            if !directory.is_dir() || !directory.exists() { return; }
+            for file in directory.read_dir().unwrap()
+            {
+                if let Ok(file) = file
+                {
+                    if file.file_name() == ".DS_Store" {continue;}
+                    let decoder = decode::create_decoder_for_file(File::open(file.path()).unwrap()).unwrap();
+                    sink.append(decoder)
+                } 
+            }
+        }
         _ => return
     };
 }
@@ -25,7 +40,6 @@ pub fn repl_ui(sink: &rodio::Sink)
 
     loop 
     {
-        print!(">");
         io::stdout().flush().unwrap();
         input.clear();
         stdin.read_line(&mut input).unwrap();
