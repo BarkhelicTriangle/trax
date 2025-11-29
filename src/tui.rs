@@ -17,6 +17,8 @@ fn command_handler(sink: &rodio::Sink, cmd: &str)
         ":+b" =>
         {
             if cmd_param == "" { return; }
+
+            // code duplication; wouldn't be an unnecessary abstraction to adding a song its own function (pref. outside this file)
             let directory = std::path::Path::new(&cmd_param);
             if !directory.is_dir() || !directory.exists() { return; }
             for file in directory.read_dir().unwrap()
@@ -24,8 +26,18 @@ fn command_handler(sink: &rodio::Sink, cmd: &str)
                 if let Ok(file) = file
                 {
                     if file.file_name() == ".DS_Store" {continue;}
-                    let decoder = decode::create_decoder_for_file(File::open(file.path()).unwrap()).unwrap();
-                    sink.append(decoder)
+                    let decoder_res = decode::create_decoder_for_file(File::open(file.path()).unwrap());
+                    match decoder_res 
+                    {
+                        Ok(decoder) => {
+                            println!("Decoding {} ok, adding to sink...", file.file_name().into_string().unwrap());
+                            sink.append(decoder);
+                        }
+
+                        Err(e) => {
+                            println!("Skipping {}, {}", file.file_name().into_string().unwrap(), e);
+                        }
+                    }
                 } 
             }
         }
