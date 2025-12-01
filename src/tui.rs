@@ -13,21 +13,32 @@ fn command_handler(sink: &rodio::Sink, cmd: &str)
             if cmd_param == "" { return; }
             let source_file = std::fs::File::open( &cmd_param).expect("Couldn't open file");
 
-            sink_interfacing::append_file_to_sink(sink, source_file);
+            let result = sink_interfacing::append_file_to_sink(sink, source_file);
+            if result.is_err()
+            {
+                println!("Decoding {} failed; {}", cmd_param, result.err().unwrap());
+            }
         },
         ":+b" =>
         {
             if cmd_param == "" { return; }
 
-            // code duplication; wouldn't be an unnecessary abstraction to adding a song its own function (pref. outside this file)
             let directory = std::path::Path::new(&cmd_param);
             if !directory.is_dir() || !directory.exists() { return; }
+
+            // on platforms other than Windows the iter returned by read_dir() is in a completely arbitrary order.
+            // todo: sort alphabetically before this point
+
             for file in directory.read_dir().unwrap()
             {
                 if let Ok(file) = file
                 {
                     if file.file_name() == ".DS_Store" {continue;}
-                    sink_interfacing::append_file_to_sink(sink,File::open(file.path()).unwrap());
+                    let result = sink_interfacing::append_file_to_sink(sink,File::open(file.path()).unwrap());
+                    if result.is_err()
+                    {
+                        println!("Decoding {} failed; {}", file.path().to_string_lossy(), result.err().unwrap());
+                    }
                 } 
             }
         }
