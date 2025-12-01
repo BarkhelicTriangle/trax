@@ -1,4 +1,3 @@
-use crate::decode;
 use crate::sink_interfacing;
 use std::{fs::File, io::{self, Write}};
 
