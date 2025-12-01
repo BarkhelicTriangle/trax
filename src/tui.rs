@@ -1,4 +1,5 @@
 use crate::decode;
+use crate::sink_interfacing;
 use std::{fs::File, io::{self, Write}};
 
 fn command_handler(sink: &rodio::Sink, cmd: &str)
@@ -11,8 +12,8 @@ fn command_handler(sink: &rodio::Sink, cmd: &str)
         {
             if cmd_param == "" { return; }
             let source_file = std::fs::File::open( &cmd_param).expect("Couldn't open file");
-            let decoder = decode::create_decoder_for_file(source_file).expect("Couldn't decode");
-            sink.append(decoder);
+
+            sink_interfacing::append_file_to_sink(sink, source_file);
         },
         ":+b" =>
         {
@@ -26,18 +27,7 @@ fn command_handler(sink: &rodio::Sink, cmd: &str)
                 if let Ok(file) = file
                 {
                     if file.file_name() == ".DS_Store" {continue;}
-                    let decoder_res = decode::create_decoder_for_file(File::open(file.path()).unwrap());
-                    match decoder_res 
-                    {
-                        Ok(decoder) => {
-                            println!("Decoding {} ok, adding to sink...", file.file_name().into_string().unwrap());
-                            sink.append(decoder);
-                        }
-
-                        Err(e) => {
-                            println!("Skipping {}, {}", file.file_name().into_string().unwrap(), e);
-                        }
-                    }
+                    sink_interfacing::append_file_to_sink(sink,File::open(file.path()).unwrap());
                 } 
             }
         }
